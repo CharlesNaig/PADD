@@ -1,0 +1,38 @@
+name: Apply NAIG Tiny customization
+
+on:
+  push:
+    branches:
+      - feature/naig-tiny-power
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/naig-tiny-power
+
+      - name: Apply customization
+        run: |
+          python3 tools/apply_naig_tiny.py
+          dash -n padd.sh
+
+      - name: Remove one-time helpers
+        run: |
+          rm -f tools/apply_naig_tiny.py
+          rm -f .github/workflows/apply-naig-tiny.yml
+          rmdir tools 2>/dev/null || true
+
+      - name: Commit generated change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add padd.sh tools .github/workflows/apply-naig-tiny.yml
+          git commit -m "feat: add NAIG Tiny power monitor and watermark"
+          git push origin HEAD:feature/naig-tiny-power
