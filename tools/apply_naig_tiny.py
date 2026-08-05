@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Apply the NAIG Tiny-layout customization to padd.sh.
 
-This script is intentionally strict: it refuses to write when the expected
-upstream PADD v4.1.0 anchors are missing or duplicated.
+The patch is deliberately scoped to the PADD v4.1.0 Tiny layout. It refuses to
+write when a required anchor is missing or duplicated inside its target block.
 """
 
 from pathlib import Path
@@ -22,6 +22,37 @@ def replace_once(text: str, old: str, new: str, description: str) -> str:
     return text.replace(old, new, 1)
 
 
+def replace_once_in_block(
+    text: str,
+    block_start: str,
+    block_end: str,
+    old: str,
+    new: str,
+    description: str,
+) -> str:
+    start_count = text.count(block_start)
+    if start_count != 1:
+        raise RuntimeError(
+            f"Expected exactly one {description} block start, found {start_count}."
+        )
+
+    start = text.index(block_start)
+    end = text.find(block_end, start + len(block_start))
+    if end < 0:
+        raise RuntimeError(f"Could not find the end of the {description} block.")
+
+    block = text[start:end]
+    anchor_count = block.count(old)
+    if anchor_count != 1:
+        raise RuntimeError(
+            f"Expected exactly one {description} anchor in its block, "
+            f"found {anchor_count}. The upstream file may have changed."
+        )
+
+    patched = block.replace(old, new, 1)
+    return text[:start] + patched + text[end:]
+
+
 def main() -> None:
     text = PADD_PATH.read_text(encoding="utf-8")
 
@@ -36,10 +67,11 @@ GetPowerInformation() {
     power_status="N/A"
     power_flags="N/A"
     core_voltage="N/A"
+    power_compact="P:N/A N/A V:N/A"
     power_heatmap=${yellow_text}
 
     # vcgencmd is available on supported Raspberry Pi systems. PADD still
-    # works on other platforms; the Tiny dashboard simply reports N/A.
+    # works elsewhere; the Tiny dashboard simply reports N/A.
     if ! command -v vcgencmd >/dev/null 2>&1; then
         return
     fi
@@ -52,15 +84,17 @@ GetPowerInformation() {
             ;;
         *)
             power_status="READ ERR"
+            power_flags="N/A"
             power_heatmap=${red_text}
+            power_compact="P:${power_status} ${power_flags} V:${core_voltage}"
             return
             ;;
     esac
 
-    # This is the SoC core voltage, not the 5 V input rail and not wattage.
+    # This is SoC Vcore, not the 5 V input rail and not total wattage.
     measured_voltage=$(vcgencmd measure_volts core 2>/dev/null | sed -n 's/^volt=\([0-9.]*V\)$/\1/p')
     if [ -n "${measured_voltage}" ]; then
-        core_voltage=${measured_voltage}
+        core_voltage=$(printf '%s\n' "${measured_voltage%V}" | awk '{printf "%.3fV", $1}')
     fi
 
     # Current conditions take priority over historical flags.
@@ -86,6 +120,9 @@ GetPowerInformation() {
         power_status="OK"
         power_heatmap=${green_text}
     fi
+
+    # Kept at 25 printable characters or fewer for the 53-column Tiny row.
+    power_compact="P:${power_status} ${power_flags} V:${core_voltage}"
 }
 
 '''
@@ -106,27 +143,31 @@ GetPowerInformation() {
 
     text = replace_once(
         text,
-        '''        top_client=$(truncateString "${top_client_raw}" 41)\n\n    elif [ "$1" = "regular" ] || [ "$1" = "slim" ]; then''',
-        '''        top_client=$(truncateString "${top_client_raw}" 41)\n\n        # Leave room for the power-health fields on the Tiny STATS lines.\n        latest_blocked_tiny=$(truncateString "${latest_blocked_raw}" 18)\n        top_blocked_tiny=$(truncateString "${top_blocked_raw}" 18)\n\n    elif [ "$1" = "regular" ] || [ "$1" = "slim" ]; then''',
-        "Tiny size-dependent output",
+        '''    elif [ "$1" = "tiny" ]; then\n        ads_blocked_bar=$(BarGenerator "${ads_percentage_today}" 30 "color")''',
+        '''    elif [ "$1" = "tiny" ]; then\n        # Compact bar leaves room for power health and Vcore on the same row.\n        ads_blocked_bar=$(BarGenerator "${ads_percentage_today}" 8 "color")''',
+        "Tiny bar generator",
     )
 
-    text = replace_once(
+    text = replace_once_in_block(
         text,
+        '''    elif [ "$1" = "tiny" ]; then\n         # tiny is a screen at least 53x20 (columns x lines)\n''',
+        '''    elif [ "$1" = "regular" ] || [ "$1" = "slim" ]; then\n''',
         '''        moveXOffset; printf "%s${clear_line}\\n" "           PADD ${padd_version_heatmap}${padd_version}${reset_text} ${tiny_status}${reset_text}"''',
-        '''        moveXOffset; printf "%s${clear_line}\\n" " ${dim_text}by NAIG${reset_text}  PADD ${padd_version_heatmap}${padd_version}${reset_text}  ${tiny_status}${reset_text}"''',
+        '''        moveXOffset; printf "%s${clear_line}\\n" " ${dim_text}by NAIG${reset_text}   PADD ${padd_version_heatmap}${padd_version}${reset_text} ${tiny_status}${reset_text}"''',
         "Tiny watermark header",
     )
 
-    text = replace_once(
+    text = replace_once_in_block(
         text,
-        '''        moveXOffset; printf " %-10s%-39s${clear_line}\\n" "Latest:" "${latest_blocked}"\n        moveXOffset; printf " %-10s%-39s${clear_line}\\n" "Top Ad:" "${top_blocked}"''',
-        '''        moveXOffset; printf " %-10s%-18s %-6s${power_heatmap}%-14s${reset_text}${clear_line}\\n" "Latest:" "${latest_blocked_tiny}" "Power:" "${power_status} ${power_flags}"\n        moveXOffset; printf " %-10s%-18s %-6s${power_heatmap}%-14s${reset_text}${clear_line}\\n" "Top Ad:" "${top_blocked_tiny}" "Vcore:" "${core_voltage}"''',
-        "Tiny power display",
+        '''    elif [ "$1" = "tiny" ]; then\n         # tiny is a screen at least 53x20 (columns x lines)\n''',
+        '''    elif [ "$1" = "regular" ] || [ "$1" = "slim" ]; then\n''',
+        '''        moveXOffset; printf " %-10s[%-30s] %-5s${clear_line}\\n" "Pi-holed:" "${ads_blocked_bar}" "${ads_percentage_today}%"''',
+        '''        moveXOffset; printf " %-9s[%-8s] %-6s ${power_heatmap}%-25s${reset_text}${clear_line}\\n" "Pi-holed:" "${ads_blocked_bar}" "${ads_percentage_today}%" "${power_compact}"''',
+        "Tiny compact power row",
     )
 
     PADD_PATH.write_text(text, encoding="utf-8", newline="\n")
-    print("Applied NAIG Tiny power monitor and watermark.")
+    print("Applied NAIG Tiny compact power row and watermark.")
 
 
 if __name__ == "__main__":
