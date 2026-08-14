@@ -35,6 +35,52 @@ PADD (formerly Chronometer2) is a more expansive version of the original chronom
 
 ## Using PADD
 
+### NAIG Tiny dashboard with 52Pi UPS Plus
+
+This fork includes `padd-naig.sh`, which creates a temporary customized copy of
+the upstream `padd.sh` each time it starts. The tracked upstream script remains
+unchanged and all other PADD display sizes keep their original layouts.
+
+The customized Tiny layout shows Raspberry Pi power health, Vcore, and the
+battery percentage reported by the [52Pi EP-0136 UPS Plus](https://wiki.52pi.com/index.php/EP-0136).
+The board communicates over I2C bus 1 at address `0x17`, using GPIO2/SDA
+(physical pin 3) and GPIO3/SCL (physical pin 5).
+
+On the Raspberry Pi, enable I2C and install the command-line I2C tools:
+
+```bash
+sudo raspi-config
+sudo apt update
+sudo apt install i2c-tools
+```
+
+In `raspi-config`, select **Interface Options**, then **I2C**, and enable it.
+After rebooting, confirm that the UPS appears as address `17`:
+
+```bash
+sudo i2cdetect -y 1
+```
+
+Run the customized dashboard with:
+
+```bash
+./padd-naig.sh
+```
+
+Tiny remains a 53x20-character display. To make room for `UPS Bat: 100%`
+directly below Vcore, the numeric `Pi-holed: X out of Y` row is omitted; the
+Pi-holed percentage and bar remain visible. Battery levels from 50-100% are
+green, 25-49% yellow, and 0-24% red. If I2C is disabled, `i2cget` is missing,
+the UPS is absent, permissions prevent access, or a read is invalid, the row
+shows `N/A` and PADD continues normally.
+
+The UPS percentage register reports 0-100%, including a valid 0%. According to
+52Pi, at least one complete charge and discharge cycle is required before the
+estimated percentage is meaningful. This integration only reads telemetry; it
+does not change firmware, battery parameters, sampling periods, shutdown
+thresholds, or automatic shutdown behavior. The register handling follows the
+[vendor UPS Plus demo](https://github.com/geeekpi/upsplus/blob/main/Full-featured-demo-code.py).
+
 ### PADD on Pi-hole machine
 
 - Just run

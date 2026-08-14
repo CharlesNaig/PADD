@@ -54,3 +54,5 @@ old
 new\.sh
 net-test.sh
 padd.py
+__pycache__/
+*.py[cod]
