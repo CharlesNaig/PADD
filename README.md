@@ -67,9 +67,10 @@ Run the customized dashboard with:
 ./padd-naig.sh
 ```
 
-Tiny remains a 53x20-character display. To make room for `UPS Bat: 100%`
-directly below Vcore, the numeric `Pi-holed: X out of Y` row is omitted; the
-Pi-holed percentage and bar remain visible. Battery levels from 50-100% are
+Tiny remains a 53x20-character display. Power health, Vcore, and `UPS Bat` are
+compressed onto one row before the Network section, while Latest and Top Ad use
+their full Tiny-width fields. The numeric `Pi-holed: X out of Y` row is omitted;
+the Pi-holed percentage and bar remain visible. Battery levels from 50-100% are
 green, 25-49% yellow, and 0-24% red. If I2C is disabled, `i2cget` is missing,
 the UPS is absent, permissions prevent access, or a read is invalid, the row
 shows `N/A` and PADD continues normally.

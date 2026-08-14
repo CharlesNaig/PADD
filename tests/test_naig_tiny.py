@@ -85,7 +85,7 @@ class NaigTinyPatchTests(unittest.TestCase):
         self.assertIn("legacy NAIG Tiny customization", result.stderr)
         self.assertIn("pristine padd.sh", result.stderr)
 
-    def test_tiny_layout_stays_53_by_20_and_places_ups_below_vcore(self) -> None:
+    def test_tiny_layout_stays_53_by_20_and_places_hardware_on_one_row(self) -> None:
         temp_dir, _ = self.apply_patch()
         patched = (temp_dir / "padd.sh").read_text(encoding="utf-8")
         dashboard = patched.split("PrintDashboard() {", 1)[1]
@@ -95,14 +95,23 @@ class NaigTinyPatchTests(unittest.TestCase):
 
         self.assertEqual(20, tiny.count("moveXOffset; printf"))
         self.assertNotIn('"${ads_blocked_today} out of ${dns_queries_today}"', tiny)
-        self.assertLess(tiny.index('"Vcore:"'), tiny.index('"UPS Bat:"'))
-        self.assertLess(tiny.index('"UPS Bat:"'), tiny.index("NETWORK"))
-        self.assertIn('"UPS Bat:" "${ups_battery}"', tiny)
+        self.assertIn('"Latest:" "${latest_blocked}"', tiny)
+        self.assertIn('"Top Ad:" "${top_blocked}"', tiny)
+        self.assertNotIn("latest_blocked_tiny", patched)
+        self.assertNotIn("top_blocked_tiny", patched)
 
-        # The two split hardware rows and the full-width UPS row must fit in
-        # Tiny's 53-column budget after ANSI color sequences are removed.
-        self.assertLessEqual(1 + 10 + 18 + 1 + 6 + 14, 53)
-        self.assertLessEqual(1 + 10 + 39, 53)
+        hardware_rows = [
+            line for line in tiny.splitlines() if '"Power:"' in line
+        ]
+        self.assertEqual(1, len(hardware_rows))
+        hardware_row = hardware_rows[0]
+        self.assertIn('"Vcore:" "${core_voltage}"', hardware_row)
+        self.assertIn('"UPS Bat:" "${ups_battery}"', hardware_row)
+        self.assertLess(tiny.index(hardware_row), tiny.index("NETWORK"))
+
+        # The compressed hardware row fits Tiny's 53-column budget after
+        # ANSI color sequences are removed.
+        self.assertLessEqual(1 + 6 + 15 + 1 + 6 + 8 + 1 + 8 + 5, 53)
 
     def test_ups_refreshes_with_power_before_ftl_early_return(self) -> None:
         temp_dir, _ = self.apply_patch()

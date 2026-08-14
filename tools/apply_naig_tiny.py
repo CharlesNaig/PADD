@@ -157,13 +157,6 @@ GetPowerInformation() {
 
     text = replace_once(
         text,
-        '''        top_client=$(truncateString "${top_client_raw}" 41)\n\n    elif [ "$1" = "regular" ] || [ "$1" = "slim" ]; then''',
-        '''        top_client=$(truncateString "${top_client_raw}" 41)\n\n        # Leave room for the power-health fields on the Tiny STATS lines.\n        latest_blocked_tiny=$(truncateString "${latest_blocked_raw}" 18)\n        top_blocked_tiny=$(truncateString "${top_blocked_raw}" 18)\n\n    elif [ "$1" = "regular" ] || [ "$1" = "slim" ]; then''',
-        "Tiny size-dependent output",
-    )
-
-    text = replace_once(
-        text,
         '''        moveXOffset; printf "%s${clear_line}\\n" "           PADD ${padd_version_heatmap}${padd_version}${reset_text} ${tiny_status}${reset_text}"''',
         '''        moveXOffset; printf "%s${clear_line}\\n" " ${dim_text}by NAIG${reset_text}  PADD ${padd_version_heatmap}${padd_version}${reset_text}  ${tiny_status}${reset_text}"''',
         "Tiny watermark header",
@@ -172,7 +165,7 @@ GetPowerInformation() {
     text = replace_once(
         text,
         '''        moveXOffset; printf " %-10s%-29s${clear_line}\\n" "Blocking:" "${domains_being_blocked} domains"\n        moveXOffset; printf " %-10s[%-30s] %-5s${clear_line}\\n" "Pi-holed:" "${ads_blocked_bar}" "${ads_percentage_today}%"\n        moveXOffset; printf " %-10s%-39s${clear_line}\\n" "Pi-holed:" "${ads_blocked_today} out of ${dns_queries_today}"\n        moveXOffset; printf " %-10s%-39s${clear_line}\\n" "Latest:" "${latest_blocked}"\n        moveXOffset; printf " %-10s%-39s${clear_line}\\n" "Top Ad:" "${top_blocked}"''',
-        '''        moveXOffset; printf " %-10s%-29s${clear_line}\\n" "Blocking:" "${domains_being_blocked} domains"\n        moveXOffset; printf " %-10s[%-30s] %-5s${clear_line}\\n" "Pi-holed:" "${ads_blocked_bar}" "${ads_percentage_today}%"\n        moveXOffset; printf " %-10s%-18s %-6s${power_heatmap}%-14s${reset_text}${clear_line}\\n" "Latest:" "${latest_blocked_tiny}" "Power:" "${power_status} ${power_flags}"\n        moveXOffset; printf " %-10s%-18s %-6s${power_heatmap}%-14s${reset_text}${clear_line}\\n" "Top Ad:" "${top_blocked_tiny}" "Vcore:" "${core_voltage}"\n        moveXOffset; printf " %-10s${ups_heatmap}%-39s${reset_text}${clear_line}\\n" "UPS Bat:" "${ups_battery}"''',
+        '''        moveXOffset; printf " %-10s%-29s${clear_line}\\n" "Blocking:" "${domains_being_blocked} domains"\n        moveXOffset; printf " %-10s[%-30s] %-5s${clear_line}\\n" "Pi-holed:" "${ads_blocked_bar}" "${ads_percentage_today}%"\n        moveXOffset; printf " %-10s%-39s${clear_line}\\n" "Latest:" "${latest_blocked}"\n        moveXOffset; printf " %-10s%-39s${clear_line}\\n" "Top Ad:" "${top_blocked}"\n        moveXOffset; printf " %-6s${power_heatmap}%-15s${reset_text} %-6s${power_heatmap}%-8s${reset_text} %-8s${ups_heatmap}%-5s${reset_text}${clear_line}\\n" "Power:" "${power_status} ${power_flags}" "Vcore:" "${core_voltage}" "UPS Bat:" "${ups_battery}"''',
         "Tiny stats and hardware display",
     )
 
