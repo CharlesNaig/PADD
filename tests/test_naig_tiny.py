@@ -108,10 +108,13 @@ class NaigTinyPatchTests(unittest.TestCase):
         self.assertIn('"Vcore:" "${core_voltage}"', hardware_row)
         self.assertIn('"UPS Bat:" "${ups_battery}"', hardware_row)
         self.assertLess(tiny.index(hardware_row), tiny.index("NETWORK"))
+        self.assertNotIn("%-15s", hardware_row)
 
-        # The compressed hardware row fits Tiny's 53-column budget after
-        # ANSI color sequences are removed.
-        self.assertLessEqual(1 + 6 + 15 + 1 + 6 + 8 + 1 + 8 + 5, 53)
+        # Values use their natural width so healthy readings do not leave a
+        # large gap. The longest supported readings still fit exactly within
+        # Tiny's 53-column budget after ANSI color sequences are removed.
+        self.assertIn('"%-7s${power_heatmap}%s${reset_text} %-7s', hardware_row)
+        self.assertEqual(7 + 17 + 1 + 7 + 7 + 1 + 9 + 4, 53)
 
     def test_ups_refreshes_with_power_before_ftl_early_return(self) -> None:
         temp_dir, _ = self.apply_patch()
