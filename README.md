@@ -82,6 +82,72 @@ does not change firmware, battery parameters, sampling periods, shutdown
 thresholds, or automatic shutdown behavior. The register handling follows the
 [vendor UPS Plus demo](https://github.com/geeekpi/upsplus/blob/main/Full-featured-demo-code.py).
 
+### PADD Web dashboard
+
+This fork also includes **PADD Web**, a dark, responsive browser dashboard made
+for a Raspberry Pi display. It uses the same Pi-hole v6 `/api/padd` data as the
+terminal dashboard and keeps the NAIG hardware readings for power health, Vcore,
+and the 52Pi EP-0136 UPS Plus battery.
+
+PADD Web has no Python package dependencies. On the Raspberry Pi, run:
+
+```bash
+cd ~/PADD
+chmod +x padd-web.sh
+./padd-web.sh
+```
+
+Open [http://localhost:8080](http://localhost:8080) on the Pi. The server binds
+to `127.0.0.1` by default, so it is only reachable from the same device.
+
+The dashboard chooses a layout from the available screen width. You can also
+use the **Density** menu to pin Full, Regular, Tiny, or Clean mode; the browser
+remembers the choice.
+
+#### Pi-hole authentication
+
+When PADD Web runs on the Pi-hole host, it automatically tries to read
+`/etc/pihole/cli_pw`. Add the account running PADD Web to the `pihole` group if
+that file is not readable, then sign out and back in:
+
+```bash
+sudo usermod -aG pihole "$USER"
+```
+
+For a different Pi-hole host, pass its API URL and provide the password through
+the environment:
+
+```bash
+PADDWEB_API=http://192.168.1.53/api/ \
+PADDWEB_PASSWORD='your-app-password' \
+./padd-web.sh
+```
+
+Use an app password when two-factor authentication is enabled. Avoid placing a
+password directly in the command arguments because other local processes may be
+able to read it.
+
+#### Display and kiosk use
+
+Start Chromium in kiosk mode after PADD Web is running:
+
+```bash
+chromium --kiosk --noerrdialogs --disable-infobars http://localhost:8080
+```
+
+To use another port, run `./padd-web.sh --port 8090`. To preview the dashboard
+without a Pi-hole, run `./padd-web.sh --demo`.
+
+Only if you intentionally want to view the dashboard from other devices on a
+trusted LAN, bind it to every interface:
+
+```bash
+./padd-web.sh --host 0.0.0.0
+```
+
+This small server does not provide TLS or user authentication, so do not expose
+it directly to the internet.
+
 ### PADD on Pi-hole machine
 
 - Just run

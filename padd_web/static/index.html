@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" data-mode="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#06100d">
+  <title>PADD Web</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#dashboard">Skip to dashboard</a>
+  <main id="dashboard" class="dashboard" aria-busy="true">
+    <header class="masthead panel">
+      <div class="brand" aria-label="PADD Web by NAIG">
+        <span class="brand-mark" aria-hidden="true"><i>P</i><i>A</i><i>D</i><i>D</i></span>
+        <span class="brand-copy"><strong>WEB</strong><small>by NAIG · Raspberry Pi display</small></span>
+      </div>
+      <div class="signal-spine" aria-hidden="true"><span></span></div>
+      <div class="header-tools">
+        <div class="clock"><time id="clock">--:--</time><span id="date">---</span></div>
+        <div class="mode-picker">
+          <label for="mode">Density</label>
+          <select id="mode" aria-label="Dashboard density">
+            <option value="auto">Auto</option><option value="full">Full</option>
+            <option value="regular">Regular</option><option value="tiny">Tiny</option>
+            <option value="clean">Clean</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <section class="health panel" data-state="loading" aria-labelledby="health-label">
+      <div class="health-icon" aria-hidden="true"><span></span></div>
+      <div><span class="eyebrow">Pi-hole status</span><h1 id="health-label">Connecting…</h1></div>
+      <div class="health-meta"><span id="hostname">---</span><span id="ipv4">---.---.---.---</span></div>
+    </section>
+
+    <section class="hero-metrics" aria-label="DNS summary">
+      <article class="metric metric-primary panel">
+        <span class="eyebrow">Blocked today</span>
+        <div class="metric-value"><strong id="blocked-percent">—</strong><small>%</small></div>
+        <div class="bar"><span id="blocked-bar"></span></div>
+        <p><b id="blocked-count">—</b> of <b id="query-count">—</b> queries</p>
+      </article>
+      <article class="metric panel"><span class="eyebrow">Domains on gravity</span><strong id="domains">—</strong><small>blocked sources</small></article>
+      <article class="metric panel"><span class="eyebrow">Active clients</span><strong id="clients">—</strong><small>talking to DNS</small></article>
+    </section>
+
+    <section class="hardware panel" aria-labelledby="hardware-title">
+      <div class="section-heading"><div><span class="eyebrow">Board telemetry</span><h2 id="hardware-title">Raspberry Pi</h2></div><span id="model" class="section-note">—</span></div>
+      <div class="hardware-grid">
+        <article class="gauge"><div class="gauge-top"><span>CPU</span><strong id="cpu">—</strong></div><div class="bar"><span id="cpu-bar"></span></div><small id="loads">load — / — / —</small></article>
+        <article class="gauge"><div class="gauge-top"><span>Memory</span><strong id="memory">—</strong></div><div class="bar"><span id="memory-bar"></span></div><small>system RAM</small></article>
+        <article class="readout"><span>Temperature</span><strong id="temperature">—</strong><small id="uptime">uptime —</small></article>
+        <article class="readout" id="power-card" data-state="unavailable"><span>Power health</span><strong id="power">—</strong><small id="vcore">Vcore —</small></article>
+        <article class="readout battery" id="ups-card" data-state="unavailable"><span>UPS battery</span><strong id="ups">—</strong><div class="battery-track"><i id="ups-fill"></i></div></article>
+      </div>
+    </section>
+
+    <section class="activity panel" aria-labelledby="activity-title">
+      <div class="section-heading"><div><span class="eyebrow">Live DNS activity</span><h2 id="activity-title">Traffic</h2></div><span class="live-dot">live</span></div>
+      <dl class="activity-list">
+        <div><dt>Latest blocked</dt><dd id="recent-blocked">—</dd></div>
+        <div><dt>Top blocked</dt><dd id="top-blocked">—</dd></div>
+        <div><dt>Top permitted</dt><dd id="top-domain">—</dd></div>
+        <div><dt>Busiest client</dt><dd id="top-client">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="network panel" aria-labelledby="network-title">
+      <div class="section-heading"><div><span class="eyebrow">Link state</span><h2 id="network-title">Network</h2></div><span id="interface" class="section-note">—</span></div>
+      <dl class="data-list">
+        <div><dt>IPv4</dt><dd id="network-ipv4">—</dd></div><div><dt>IPv6</dt><dd id="network-ipv6">—</dd></div>
+        <div><dt>Received</dt><dd id="rx">—</dd></div><div><dt>Sent</dt><dd id="tx">—</dd></div>
+        <div><dt>DNSSEC</dt><dd id="dnssec">—</dd></div><div><dt>DHCP</dt><dd id="dhcp">—</dd></div>
+      </dl>
+    </section>
+
+    <footer class="footer panel">
+      <div class="versions"><span>PADD Web <b id="version-padd">—</b></span><span>Core <b id="version-core">—</b></span><span>Web <b id="version-web">—</b></span><span>FTL <b id="version-ftl">—</b></span></div>
+      <div class="freshness"><span id="connection-text">Waiting for data</span><time id="freshness">—</time></div>
+    </footer>
+    <p id="announcer" class="sr-only" aria-live="polite"></p>
+  </main>
+</body>
+</html>
+
