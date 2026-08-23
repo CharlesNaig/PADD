@@ -56,3 +56,4 @@ net-test.sh
 padd.py
 __pycache__/
 *.py[cod]
+tests/test_web_server.py
